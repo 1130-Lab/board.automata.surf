@@ -1,0 +1,5 @@
+<Solution>
+  <Project Path="../board.automata.surf.grpc/board.automata.surf.grpc.csproj" />
+  <Project Path="../board.automata.surf/board.automata.surf.csproj" />
+  <Project Path="board.automata.surf.api.csproj" />
+</Solution>

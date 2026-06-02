@@ -1,0 +1,93 @@
+/* ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ *
+ * Please watch this video before/during review of this proto:
+ * https://www.youtube.com/watch?v=GgQ5BJTSv9U
+ * ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~ */
+
+syntax = "proto3";
+
+package ai.model;
+
+option csharp_namespace = "board.automata.surf.proto";
+
+service ModelSurfness {
+  rpc SendClientMessage (ClientMessage) returns (ServerMessage);
+  rpc SendServerMessage (ServerMessage) returns (ClientMessage);
+}
+
+enum InferenceType
+{
+  INFERENCE_TYPE_UNKNOWN = 0;
+  INFERENCE_TYPE_LLM = 1;
+  INFERENCE_TYPE_IMAGE = 2;
+  INFERENCE_TYPE_AUDIO = 3;
+  INFERENCE_TYPE_VIDEO = 4;
+  INFERENCE_TYPE_CUSTOM = 64;
+}
+
+/* For the MVP, I'm only looking to support a chat interface with an LLM. 
+ * A harness and proper CLI tool to manage such a harness API (whether MCP or otherwise) is the next step for LLMs.
+ * Image, Audio, Custom messages will likely come before the harness due to less complexity, at least for the hotpath of these models. 
+ * My hardware is unable to generate video -- at least any of the models I initially checked out. If anyone is able to I'd be stoked to add video inference support too. */
+
+enum LlmMessageType {
+  LLM_MESSAGE_TYPE_UNKNOWN = 0;
+  LLM_MESSAGE_TYPE_CHAT = 1;
+  LLM_MESSAGE_TYPE_CONTEXT = 2;
+}
+
+enum SurfMessageType {
+  SURF_MESSAGE_TYPE_UNKNOWN = 0;
+  SURF_MESSAGE_TYPE_HEARTBEAT = 1;
+
+  SURF_MESSAGE_TYPE_SESSION_START = 10;
+  SURF_MESSAGE_TYPE_SESSION_END = 11;
+  SURF_MESSAGE_TYPE_INFERENCE = 12;
+}
+
+enum SurfMessageResult {
+  SURF_MESSAGE_RESULT_UNKNOWN = 0;
+  SURF_MESSAGE_RESULT_SUCCESS = 1;
+  SURF_MESSAGE_RESULT_ERROR = 2;
+  SURF_MESSAGE_RESULT_TIMEOUT = 3;
+}
+
+message ClientHeader {
+  string session_id = 1;
+  string public_key = 2;
+  SurfMessageType message_type = 3;
+  /* UTC ms since epoch -- NOT SECONDS! */
+  int64 timestamp = 4;
+}
+
+message ClientMessage {
+  ClientHeader header = 1;
+  LlmMessage llm_message = 10;
+}
+
+message ServerHeader {
+  string session_id = 1;
+  SurfMessageType message_type = 2;
+  SurfMessageResult message_result = 3;
+  string reason = 4; /* For error messages */
+  /* UTC ms since epoch -- NOT SECONDS! */
+  int64 timestamp = 5;
+}
+
+message ServerMessage {
+  ServerHeader header = 1;
+  LlmMessage llm_message = 10;
+}
+
+message SessionStart {
+  string client_id = 1;
+  bytes public_key = 2;
+}
+
+/* All chat data is zipped. All data in general perhaps. If latency from zipping time becomes a concern, we probably need a setting for files that large. */
+message LlmMessage {
+  uint64 id = 1;
+  bytes compressed_data = 2;
+  string compression_format = 3;
+  uint64 uncompressed_size = 4;
+  uint64 token_count = 5;
+}
