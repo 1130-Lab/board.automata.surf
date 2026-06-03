@@ -14,8 +14,8 @@ An end user should be able to use Ollama-compatible tooling (GUIs, TUIs, broker 
 WebAPI for local/p2p communication. 
 - Replicate Ollama's REST API. This gives us access to existing Ollama tooling.
 - CORS for filtering requests. When a new peer is added, they are first added to the CORS list. Peers will be authenticated by a common aggregation server ("Beach") if enabled.
+- The Beach is also the first address to be permitted by CORS if one is added, otherwise it will be localhost.
 
-The Beach is also the first address to be permitted by CORS if one is added, otherwise it will be localhost.
 gRPC layer for Model <-> API communication. 
 - Model agnostic for routing data to/from the ASP.NET web API. 
 - Easily extended for additional model and io formats.
