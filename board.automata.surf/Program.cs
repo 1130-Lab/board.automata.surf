@@ -17,14 +17,18 @@ builder.Services.AddHostedService<SessionCleanupService>();
 
 var app = builder.Build();
 
+/*
+ * Idea: use CORS to filter requests. Add Beach by default, and add/remove peers from CORS list as necessary.
+ */
+
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+  app.MapOpenApi();
 }
 
 app.UseWebSockets(new WebSocketOptions
 {
-    KeepAliveInterval = TimeSpan.FromSeconds(30)
+  KeepAliveInterval = TimeSpan.FromSeconds(30)
 });
 
 app.MapControllers();
