@@ -1,4 +1,4 @@
-using board.automata.surf.models;
+using board.automata.surf.api.models;
 using Microsoft.AspNetCore.Mvc;
 
 namespace board.automata.surf.controllers;
@@ -22,6 +22,7 @@ public sealed class LlmController : ControllerBase
   [HttpPost("generate")]
   public ActionResult<OllamaGenerateResponse> Generate([FromBody] OllamaGenerateRequest request)
   {
+
     return EndpointNotImplemented("generate");
   }
 

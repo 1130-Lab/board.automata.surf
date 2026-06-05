@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace board.automata.surf.models;
+namespace board.automata.surf.api.models;
 
 public sealed class OllamaGenerateRequest
 {
