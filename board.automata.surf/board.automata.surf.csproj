@@ -14,6 +14,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\board.automata.surf.grpc\board.automata.surf.api.csproj" />
+    <ProjectReference Include="..\board.automata.surf.api\board.automata.surf.api.csproj" />
+    <ProjectReference Include="..\board.automata.surf.grpc\board.automata.surf.grpc.csproj" />
   </ItemGroup>
 </Project>

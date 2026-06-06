@@ -3,9 +3,7 @@
     <TargetFramework>net10.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
-
-    <ItemGroup>
-      <ProjectReference Include="..\board.automata.surf.grpc\board.automata.surf.grpc.csproj" />
-    </ItemGroup>
   </PropertyGroup>
+
+
 </Project>

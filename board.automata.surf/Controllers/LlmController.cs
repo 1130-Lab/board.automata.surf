@@ -22,7 +22,6 @@ public sealed class LlmController : ControllerBase
   [HttpPost("generate")]
   public ActionResult<OllamaGenerateResponse> Generate([FromBody] OllamaGenerateRequest request)
   {
-
     return EndpointNotImplemented("generate");
   }
 

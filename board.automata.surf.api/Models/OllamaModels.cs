@@ -6,7 +6,7 @@ namespace board.automata.surf.api.models;
 public sealed class OllamaGenerateRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("prompt")]
   public string? Prompt { get; init; }
@@ -105,7 +105,7 @@ public sealed class OllamaGenerateResponse
 public sealed class OllamaChatRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("messages")]
   public IReadOnlyList<OllamaMessage> Messages { get; init; } = [];
@@ -225,7 +225,7 @@ public sealed class OllamaToolInvocation
 public sealed class OllamaCreateModelRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("from")]
   public string? From { get; init; }
@@ -261,7 +261,7 @@ public sealed class OllamaCreateModelRequest
 public sealed class OllamaShowRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("verbose")]
   public bool? Verbose { get; init; }
@@ -306,13 +306,13 @@ public sealed class OllamaCopyModelRequest
 public sealed class OllamaDeleteModelRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 }
 
 public sealed class OllamaPullModelRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("insecure")]
   public bool? Insecure { get; init; }
@@ -324,7 +324,7 @@ public sealed class OllamaPullModelRequest
 public sealed class OllamaPushModelRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("insecure")]
   public bool? Insecure { get; init; }
@@ -351,7 +351,7 @@ public sealed class OllamaStatusResponse
 public sealed class OllamaEmbedRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("input")]
   public JsonElement Input { get; init; }
@@ -390,7 +390,7 @@ public sealed class OllamaEmbedResponse
 public sealed class OllamaEmbeddingsRequest
 {
   [JsonPropertyName("model")]
-  public string Model { get; init; } = string.Empty;
+  public string Model { get; set; } = string.Empty;
 
   [JsonPropertyName("prompt")]
   public string Prompt { get; init; } = string.Empty;
