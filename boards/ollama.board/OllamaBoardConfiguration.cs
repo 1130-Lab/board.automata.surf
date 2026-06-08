@@ -2,8 +2,8 @@
 
 public sealed class OllamaBoardConfiguration
 {
-  public List<string> AllowedModels { get; }
-  public List<string> DisallowedModels { get; }
-  public string DefaultModel { get; }
+  public required List<string> AllowedModels { get; set; }
+  public required List<string> DisallowedModels { get; set; }
+  public required string DefaultModel { get; set; }
   public int MaxUsers { get; }
 }

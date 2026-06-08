@@ -11,15 +11,18 @@ public sealed class SessionsController : ControllerBase
 {
     private readonly SessionStore _sessionStore;
     private readonly SessionTokenService _tokenService;
+    private readonly ModelBridgeOptions _modelBridgeOptions;
     private readonly ILogger<SessionsController> _logger;
 
     public SessionsController(
         SessionStore sessionStore,
         SessionTokenService tokenService,
+        IOptions<ModelBridgeOptions> modelBridgeOptions,
         ILogger<SessionsController> logger)
     {
         _sessionStore = sessionStore;
         _tokenService = tokenService;
+        _modelBridgeOptions = modelBridgeOptions.Value;
         _logger = logger;
     }
 
@@ -32,9 +35,7 @@ public sealed class SessionsController : ControllerBase
 
         var sessionId = Guid.CreateVersion7().ToString("N");
 
-        var url = BuildWebSocketUrl(sessionId);
-
-        var reserved = _sessionStore.CreateReservedSession(sessionId, modelName, url);
+        var reserved = _sessionStore.CreateReservedSession(sessionId, modelName, _modelBridgeOptions.GrpcEndpoint);
  
         var token = _tokenService.IssueToken(reserved.SessionId);
         if (!_sessionStore.MarkActive(reserved.SessionId, token.Jti, token.ExpiresAtUtc))
@@ -63,7 +64,7 @@ public sealed class SessionsController : ControllerBase
         {
             Scheme = Request.IsHttps ? "wss" : "ws",
             Host = Request.Host.Host,
-            Path = Request.IsHttps ? "/ws/secure" : "/ws",
+            Path = _modelBridgeOptions.WebSocketPath,
             Query = $"sid={Uri.EscapeDataString(sessionId)}"
         };
 

@@ -6,5 +6,6 @@ RUN dotnet publish boards/ollama.board/ollama.board.csproj -c Release -o /app/pu
 FROM mcr.microsoft.com/dotnet/aspnet:10.0 AS final
 WORKDIR /app
 COPY --from=build /app/publish .
-ENV ASPNETCORE_URLS=http://+:8080
+ENV BOARD_GRPC_PORT=50061
+ENV BOARD_MODEL_KEEP_ALIVE=-1
 ENTRYPOINT ["dotnet", "ollama.board.dll"]

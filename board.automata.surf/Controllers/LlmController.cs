@@ -1,120 +1,417 @@
-using board.automata.surf.api.models;
+using System.Text;
+using System.Text.Json;
+using board.automata.surf.proto;
+using board.automata.surf.services;
+using Grpc.Core;
 using Microsoft.AspNetCore.Mvc;
 
 namespace board.automata.surf.controllers;
-
-/* ~~~~~~~~~~~~~~~~~~~~~~~~~
- * We replicate the API of Ollama, giving us the ability 
- * to impersonate Ollama for existing tooling.
- * ~~~~~~~~~~~~~~~~~~~~~~~~~ */
 
 [ApiController]
 [Route("api")]
 public sealed class LlmController : ControllerBase
 {
   private readonly ILogger<LlmController> _logger;
+  private readonly ModelGrpcBridge _modelBridge;
 
-  public LlmController(ILogger<LlmController> logger)
+  public LlmController(ILogger<LlmController> logger, ModelGrpcBridge modelBridge)
   {
     _logger = logger;
+    _modelBridge = modelBridge;
   }
 
   [HttpPost("generate")]
-  public ActionResult<OllamaGenerateResponse> Generate([FromBody] OllamaGenerateRequest request)
+  public async Task<IActionResult> Generate(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("generate");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "generate",
+      llmMessageType: LlmMessageType.Generate,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: IsStreamingRequest(requestJson),
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("chat")]
-  public ActionResult<OllamaChatResponse> Chat([FromBody] OllamaChatRequest request)
+  public async Task<IActionResult> Chat(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("chat");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "chat",
+      llmMessageType: LlmMessageType.Chat,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: IsStreamingRequest(requestJson),
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("create")]
-  public ActionResult<OllamaStatusResponse> Create([FromBody] OllamaCreateModelRequest request)
+  public async Task<IActionResult> Create(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("create");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "create",
+      llmMessageType: LlmMessageType.Create,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: IsStreamingRequest(requestJson),
+      cancellationToken: cancellationToken);
   }
 
   [HttpHead("blobs/{digest}")]
-  public IActionResult HeadBlob([FromRoute] string digest)
+  public Task<IActionResult> HeadBlob([FromRoute] string digest, CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("blobs/{digest}");
+    return RelayBlobStatusEndpointAsync(
+      $"blobs/head/{digest}",
+      LlmMessageType.BlobHead,
+      Array.Empty<byte>(),
+      cancellationToken);
   }
 
   [HttpPost("blobs/{digest}")]
-  public IActionResult CreateBlob([FromRoute] string digest)
+  public async Task<IActionResult> CreateBlob([FromRoute] string digest, CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("blobs/{digest}");
+    byte[] payload;
+    using (var memory = new MemoryStream())
+    {
+      await Request.Body.CopyToAsync(memory, cancellationToken);
+      payload = memory.ToArray();
+    }
+
+    return await RelayBlobStatusEndpointAsync(
+      $"blobs/post/{digest}",
+      LlmMessageType.BlobCreate,
+      payload,
+      cancellationToken);
   }
 
   [HttpGet("tags")]
-  public ActionResult<OllamaTagsResponse> Tags()
+  public Task<IActionResult> Tags(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("tags");
+    return RelayEndpointAsync(
+      endpoint: "tags",
+      llmMessageType: LlmMessageType.Tags,
+      payload: Encoding.UTF8.GetBytes("{}"),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("show")]
-  public ActionResult<OllamaShowResponse> Show([FromBody] OllamaShowRequest request)
+  public async Task<IActionResult> Show(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("show");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "show",
+      llmMessageType: LlmMessageType.Show,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("copy")]
-  public IActionResult Copy([FromBody] OllamaCopyModelRequest request)
+  public async Task<IActionResult> Copy(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("copy");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "copy",
+      llmMessageType: LlmMessageType.Copy,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpDelete("delete")]
-  public IActionResult Delete([FromBody] OllamaDeleteModelRequest request)
+  public async Task<IActionResult> Delete(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("delete");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "delete",
+      llmMessageType: LlmMessageType.Delete,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("pull")]
-  public ActionResult<OllamaStatusResponse> Pull([FromBody] OllamaPullModelRequest request)
+  public async Task<IActionResult> Pull(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("pull");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "pull",
+      llmMessageType: LlmMessageType.Pull,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: IsStreamingRequest(requestJson),
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("push")]
-  public ActionResult<OllamaStatusResponse> Push([FromBody] OllamaPushModelRequest request)
+  public async Task<IActionResult> Push(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("push");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "push",
+      llmMessageType: LlmMessageType.Push,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: IsStreamingRequest(requestJson),
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("embed")]
-  public ActionResult<OllamaEmbedResponse> Embed([FromBody] OllamaEmbedRequest request)
+  public async Task<IActionResult> Embed(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("embed");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "embed",
+      llmMessageType: LlmMessageType.Embed,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpGet("ps")]
-  public ActionResult<OllamaPsResponse> Ps()
+  public Task<IActionResult> Ps(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("ps");
+    return RelayEndpointAsync(
+      endpoint: "ps",
+      llmMessageType: LlmMessageType.Ps,
+      payload: Encoding.UTF8.GetBytes("{}"),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpPost("embeddings")]
-  public ActionResult<OllamaEmbeddingsResponse> Embeddings([FromBody] OllamaEmbeddingsRequest request)
+  public async Task<IActionResult> Embeddings(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("embeddings");
+    var requestJson = await ReadRequestJsonAsync(cancellationToken);
+    if (requestJson is null)
+    {
+      return BadRequest(new { message = "Request body must be valid JSON." });
+    }
+
+    return await RelayEndpointAsync(
+      endpoint: "embeddings",
+      llmMessageType: LlmMessageType.Embeddings,
+      payload: Encoding.UTF8.GetBytes(requestJson),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
   [HttpGet("version")]
-  public ActionResult<OllamaVersionResponse> Version()
+  public Task<IActionResult> Version(CancellationToken cancellationToken)
   {
-    return EndpointNotImplemented("version");
+    return RelayEndpointAsync(
+      endpoint: "version",
+      llmMessageType: LlmMessageType.Version,
+      payload: Encoding.UTF8.GetBytes("{}"),
+      streamRequested: false,
+      cancellationToken: cancellationToken);
   }
 
-  private ObjectResult EndpointNotImplemented(string endpoint)
+  private async Task<IActionResult> RelayBlobStatusEndpointAsync(
+      string endpoint,
+      LlmMessageType llmMessageType,
+      byte[] payload,
+      CancellationToken cancellationToken)
   {
-    _logger.LogInformation("Ollama-compatible endpoint {Endpoint} is not implemented yet.", endpoint);
-    return StatusCode(StatusCodes.Status501NotImplemented, new
+    try
     {
-      message = $"The Ollama-compatible endpoint '/api/{endpoint}' is not implemented yet."
-    });
+      var resultJson = await RelayForSingleJsonChunkAsync(endpoint, llmMessageType, payload, cancellationToken);
+      if (resultJson is null)
+      {
+        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Board returned no response." });
+      }
+
+      BlobStatusResponse? status;
+      try
+      {
+        status = JsonSerializer.Deserialize<BlobStatusResponse>(resultJson);
+      }
+      catch (JsonException ex)
+      {
+        _logger.LogWarning(ex, "Blob status payload from board was invalid JSON.");
+        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Board returned malformed response." });
+      }
+
+      if (status is null)
+      {
+        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Board returned malformed response." });
+      }
+
+      return StatusCode(status.StatusCode);
+    }
+    catch (RpcException ex)
+    {
+      _logger.LogError(ex, "Board gRPC call failed for {Path}", Request.Path);
+      return StatusCode(StatusCodes.Status502BadGateway, new { message = $"Board call failed: {ex.Status.Detail}" });
+    }
+    catch (InvalidOperationException ex)
+    {
+      _logger.LogWarning(ex, "Board rejected request for {Path}", Request.Path);
+      return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
+    }
+    catch (InvalidDataException ex)
+    {
+      _logger.LogWarning(ex, "Board returned invalid compressed payload for {Path}", Request.Path);
+      return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
+    }
   }
+
+  private async Task<IActionResult> RelayEndpointAsync(
+      string endpoint,
+      LlmMessageType llmMessageType,
+      byte[] payload,
+      bool streamRequested,
+      CancellationToken cancellationToken)
+  {
+    try
+    {
+      var sessionId = Guid.CreateVersion7().ToString("N");
+      var chunks = _modelBridge.StreamInferenceAsync(
+        sessionId,
+        endpoint,
+        llmMessageType,
+        payload,
+        cancellationToken);
+
+      if (streamRequested)
+      {
+        Response.StatusCode = StatusCodes.Status200OK;
+        Response.ContentType = "application/x-ndjson";
+
+        await foreach (var chunk in chunks)
+        {
+          await Response.WriteAsync(chunk, cancellationToken);
+          if (!chunk.EndsWith('\n'))
+          {
+            await Response.WriteAsync("\n", cancellationToken);
+          }
+
+          await Response.Body.FlushAsync(cancellationToken);
+        }
+
+        return new EmptyResult();
+      }
+
+      string? lastChunk = null;
+      await foreach (var chunk in chunks)
+      {
+        lastChunk = chunk;
+      }
+
+      if (lastChunk is null)
+      {
+        return StatusCode(StatusCodes.Status502BadGateway, new { message = "Board returned no response." });
+      }
+
+      return Content(lastChunk, "application/json", Encoding.UTF8);
+    }
+    catch (RpcException ex)
+    {
+      _logger.LogError(ex, "Board gRPC call failed for {Path}", Request.Path);
+      return StatusCode(StatusCodes.Status502BadGateway, new { message = $"Board call failed: {ex.Status.Detail}" });
+    }
+    catch (InvalidOperationException ex)
+    {
+      _logger.LogWarning(ex, "Board rejected request for {Path}", Request.Path);
+      return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
+    }
+    catch (InvalidDataException ex)
+    {
+      _logger.LogWarning(ex, "Board returned invalid compressed payload for {Path}", Request.Path);
+      return StatusCode(StatusCodes.Status502BadGateway, new { message = ex.Message });
+    }
+  }
+
+  private async Task<string?> RelayForSingleJsonChunkAsync(
+      string endpoint,
+      LlmMessageType llmMessageType,
+      byte[] payload,
+      CancellationToken cancellationToken)
+  {
+    var sessionId = Guid.CreateVersion7().ToString("N");
+    var chunks = _modelBridge.StreamInferenceAsync(sessionId, endpoint, llmMessageType, payload, cancellationToken);
+
+    string? lastChunk = null;
+    await foreach (var chunk in chunks)
+    {
+      lastChunk = chunk;
+    }
+
+    return lastChunk;
+  }
+
+  private async Task<string?> ReadRequestJsonAsync(CancellationToken cancellationToken)
+  {
+    string requestJson;
+    using (var reader = new StreamReader(Request.Body, Encoding.UTF8))
+    {
+      requestJson = await reader.ReadToEndAsync(cancellationToken);
+    }
+
+    requestJson = string.IsNullOrWhiteSpace(requestJson) ? "{}" : requestJson;
+
+    try
+    {
+      using var _ = JsonDocument.Parse(requestJson);
+      return requestJson;
+    }
+    catch (JsonException ex)
+    {
+      _logger.LogWarning(ex, "Invalid JSON payload for {Path}", Request.Path);
+      return null;
+    }
+  }
+
+  private static bool IsStreamingRequest(string requestJson)
+  {
+    using var document = JsonDocument.Parse(requestJson);
+    return document.RootElement.ValueKind == JsonValueKind.Object &&
+           document.RootElement.TryGetProperty("stream", out var streamElement) &&
+           streamElement.ValueKind == JsonValueKind.True;
+  }
+
+  private sealed record BlobStatusResponse(int StatusCode);
 }

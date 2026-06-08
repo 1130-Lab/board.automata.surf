@@ -39,7 +39,7 @@ public sealed class OllamaGenerateRequest
   public bool? Raw { get; init; }
 
   [JsonPropertyName("keep_alive")]
-  public JsonElement? KeepAlive { get; init; }
+  public JsonElement? KeepAlive { get; set; }
 
   [JsonPropertyName("context")]
   public IReadOnlyList<int>? Context { get; init; }
@@ -126,7 +126,7 @@ public sealed class OllamaChatRequest
   public bool? Stream { get; init; }
 
   [JsonPropertyName("keep_alive")]
-  public JsonElement? KeepAlive { get; init; }
+  public JsonElement? KeepAlive { get; set; }
 }
 
 public sealed class OllamaChatResponse
@@ -363,7 +363,7 @@ public sealed class OllamaEmbedRequest
   public Dictionary<string, JsonElement>? Options { get; init; }
 
   [JsonPropertyName("keep_alive")]
-  public JsonElement? KeepAlive { get; init; }
+  public JsonElement? KeepAlive { get; set; }
 
   [JsonPropertyName("dimensions")]
   public int? Dimensions { get; init; }
@@ -399,7 +399,7 @@ public sealed class OllamaEmbeddingsRequest
   public Dictionary<string, JsonElement>? Options { get; init; }
 
   [JsonPropertyName("keep_alive")]
-  public JsonElement? KeepAlive { get; init; }
+  public JsonElement? KeepAlive { get; set; }
 }
 
 public sealed class OllamaEmbeddingsResponse
@@ -427,6 +427,12 @@ public sealed class OllamaModelSummary
 
   [JsonPropertyName("model")]
   public string Model { get; init; } = string.Empty;
+
+  [JsonPropertyName("remote_model")]
+  public string? RemoteModel { get; init; }
+
+  [JsonPropertyName("remote_host")]
+  public string? RemoteHost { get; init; }
 
   [JsonPropertyName("modified_at")]
   public DateTimeOffset? ModifiedAt { get; init; }

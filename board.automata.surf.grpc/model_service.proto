@@ -12,6 +12,7 @@ option csharp_namespace = "board.automata.surf.proto";
 service ModelSurfness {
   rpc SendClientMessage (ClientMessage) returns (ServerMessage);
   rpc SendServerMessage (ServerMessage) returns (ClientMessage);
+  rpc ExchangeMessages (stream ClientMessage) returns (stream ServerMessage);
 }
 
 enum InferenceType
@@ -33,6 +34,20 @@ enum LlmMessageType {
   LLM_MESSAGE_TYPE_UNKNOWN = 0;
   LLM_MESSAGE_TYPE_CHAT = 1;
   LLM_MESSAGE_TYPE_CONTEXT = 2;
+  LLM_MESSAGE_TYPE_GENERATE = 3;
+  LLM_MESSAGE_TYPE_CREATE = 4;
+  LLM_MESSAGE_TYPE_SHOW = 5;
+  LLM_MESSAGE_TYPE_COPY = 6;
+  LLM_MESSAGE_TYPE_DELETE = 7;
+  LLM_MESSAGE_TYPE_PULL = 8;
+  LLM_MESSAGE_TYPE_PUSH = 9;
+  LLM_MESSAGE_TYPE_EMBED = 10;
+  LLM_MESSAGE_TYPE_EMBEDDINGS = 11;
+  LLM_MESSAGE_TYPE_TAGS = 12;
+  LLM_MESSAGE_TYPE_PS = 13;
+  LLM_MESSAGE_TYPE_VERSION = 14;
+  LLM_MESSAGE_TYPE_BLOB_HEAD = 15;
+  LLM_MESSAGE_TYPE_BLOB_CREATE = 16;
 }
 
 enum SurfMessageType {
@@ -62,6 +77,8 @@ message ClientHeader {
 message ClientMessage {
   ClientHeader header = 1;
   LlmMessage llm_message = 10;
+  LlmMessageType llm_message_type = 11;
+  string endpoint = 12;
 }
 
 message ServerHeader {
@@ -76,6 +93,8 @@ message ServerHeader {
 message ServerMessage {
   ServerHeader header = 1;
   LlmMessage llm_message = 10;
+  LlmMessageType llm_message_type = 11;
+  string endpoint = 12;
 }
 
 message SessionStart {

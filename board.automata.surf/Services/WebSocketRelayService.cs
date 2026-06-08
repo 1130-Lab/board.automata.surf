@@ -77,7 +77,26 @@ public sealed class WebSocketRelayService
   {
     using var channel = GrpcChannel.ForAddress(modelEndpoint);
     var modelClient = new ModelSurfness.ModelSurfnessClient(channel);
-    /* Route model -> end user via websocket */
+    using var call = modelClient.ExchangeMessages(cancellationToken: cancellationToken);
+
+    var webSocketToGrpc = WebSocketToGrpcAsync(webSocket, call.RequestStream, sessionId, cancellationToken);
+    var grpcToWebSocket = GrpcToWebSocketAsync(call.ResponseStream, webSocket, sessionId, cancellationToken);
+
+    try
+    {
+      await Task.WhenAny(webSocketToGrpc, grpcToWebSocket);
+      await call.RequestStream.CompleteAsync();
+      await Task.WhenAll(webSocketToGrpc, grpcToWebSocket);
+    }
+    catch (RpcException ex)
+    {
+      _logger.LogError(ex, "gRPC relay failure for session {SessionId}", sessionId);
+    }
+
+    if (webSocket.State is WebSocketState.Open or WebSocketState.CloseReceived)
+    {
+      await webSocket.CloseAsync(WebSocketCloseStatus.NormalClosure, "relay complete", cancellationToken);
+    }
   }
 
   private async Task WebSocketToGrpcAsync(
