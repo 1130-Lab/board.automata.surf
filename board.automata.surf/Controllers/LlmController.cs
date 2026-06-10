@@ -1,5 +1,6 @@
 using System.Text;
 using System.Text.Json;
+using board.automata.surf.api.models;
 using board.automata.surf.proto;
 using board.automata.surf.services;
 using Grpc.Core;
@@ -21,7 +22,7 @@ public sealed class LlmController : ControllerBase
   }
 
   [HttpPost("generate")]
-  public async Task<IActionResult> Generate(CancellationToken cancellationToken)
+  public async Task<IActionResult> Generate([FromBody] OllamaGenerateRequest request, CancellationToken cancellationToken)
   {
     var requestJson = await ReadRequestJsonAsync(cancellationToken);
     if (requestJson is null)

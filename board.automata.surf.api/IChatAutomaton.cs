@@ -10,34 +10,34 @@ namespace board.automata.surf.api
     public uint RequiredRam { get; }
     public bool RequiresGpu { get; }
 
-    public OllamaGenerateResponse Generate(OllamaGenerateRequest request);
+    public Task<OllamaGenerateResponse> Generate(OllamaGenerateRequest request);
 
-    public OllamaChatResponse Chat(OllamaChatRequest request);
+    public Task<OllamaChatResponse> Chat(OllamaChatRequest request);
 
-    public OllamaShowResponse Show(OllamaShowRequest request);
+    public Task<OllamaShowResponse> Show(OllamaShowRequest request);
 
-    public OllamaStatusResponse CreateModel(OllamaCreateModelRequest request);
+    public Task<OllamaStatusResponse> CreateModel(OllamaCreateModelRequest request);
 
-    public OllamaStatusResponse CopyModel(OllamaCopyModelRequest request);
+    public Task<OllamaStatusResponse> CopyModel(OllamaCopyModelRequest request);
 
-    public OllamaStatusResponse DeleteModel(OllamaDeleteModelRequest request);
+    public Task<OllamaStatusResponse> DeleteModel(OllamaDeleteModelRequest request);
 
-    public OllamaStatusResponse PullModel(OllamaPullModelRequest request);
+    public Task<OllamaStatusResponse> PullModel(OllamaPullModelRequest request);
 
-    public OllamaStatusResponse PushModel(OllamaPushModelRequest request);
+    public Task<OllamaStatusResponse> PushModel(OllamaPushModelRequest request);
 
-    public OllamaEmbedResponse Embed(OllamaEmbedRequest request);
+    public Task<OllamaEmbedResponse> Embed(OllamaEmbedRequest request);
 
-    public OllamaEmbeddingsResponse Embeddings(OllamaEmbeddingsRequest request);
+    public Task<OllamaEmbeddingsResponse> Embeddings(OllamaEmbeddingsRequest request);
 
-    public OllamaModelSummary Summary();
+    public Task<OllamaModelSummary> Summary();
 
-    public OllamaModelDetails Details();
+    public Task<OllamaModelDetails> Details();
 
-    public OllamaPsResponse List();
+    public Task<OllamaPsResponse> List();
 
-    public OllamaTagsResponse Tags();
+    public Task<OllamaTagsResponse> Tags();
 
-    public OllamaVersionResponse Version();
+    public Task<OllamaVersionResponse> Version();
   }
 }

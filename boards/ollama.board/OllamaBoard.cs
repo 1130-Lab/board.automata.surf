@@ -20,106 +20,106 @@ public sealed class OllamaBoard(OllamaClient ollama, string address, string mode
   private readonly OllamaClient _ollama = ollama;
   private readonly string _defaultModel = model;
 
-  public OllamaGenerateResponse Generate(OllamaGenerateRequest request)
+  public async Task<OllamaGenerateResponse> Generate(OllamaGenerateRequest request)
   {
     request.Model = ResolveModel(request.Model);
-    return _ollama.GenerateAsync(request).GetAwaiter().GetResult()
+    return await _ollama.GenerateAsync(request)
            ?? throw new InvalidOperationException("Ollama returned no response.");
   }
 
-  public OllamaChatResponse Chat(OllamaChatRequest request)
+  public async Task<OllamaChatResponse> Chat(OllamaChatRequest request)
   {
     request.Model = ResolveModel(request.Model);
-    return _ollama.ChatAsync(request).GetAwaiter().GetResult()
+    return await _ollama.ChatAsync(request)
            ?? throw new InvalidOperationException("Ollama returned no response.");
   }
 
-  public OllamaShowResponse Show(OllamaShowRequest request)
+  public async Task<OllamaShowResponse> Show(OllamaShowRequest request)
   {
     request.Model = ResolveModel(request.Model);
-    return _ollama.ShowAsync(request).GetAwaiter().GetResult()
+    return await _ollama.ShowAsync(request)
            ?? throw new InvalidOperationException("Ollama returned no response.");
   }
 
-  public OllamaStatusResponse CreateModel(OllamaCreateModelRequest request)
+  public async Task<OllamaStatusResponse> CreateModel(OllamaCreateModelRequest request)
   {
     request.Model = ResolveModel(request.Model);
-    return _ollama.CreateModelAsync(request).GetAwaiter().GetResult()
+    return await _ollama.CreateModelAsync(request)
            ?? new OllamaStatusResponse { Status = "error" };
   }
 
-  public OllamaStatusResponse CopyModel(OllamaCopyModelRequest request)
+  public async Task<OllamaStatusResponse> CopyModel(OllamaCopyModelRequest request)
   {
-    return _ollama.CopyModelAsync(request).GetAwaiter().GetResult()
+    return await _ollama.CopyModelAsync(request)
            ?? new OllamaStatusResponse { Status = "error" };
   }
 
-  public OllamaStatusResponse DeleteModel(OllamaDeleteModelRequest request)
+  public async Task<OllamaStatusResponse> DeleteModel(OllamaDeleteModelRequest request)
   {
-    return _ollama.DeleteModelAsync(request).GetAwaiter().GetResult()
+    return await _ollama.DeleteModelAsync(request)
            ?? new OllamaStatusResponse { Status = "error" };
   }
 
-  public OllamaStatusResponse PullModel(OllamaPullModelRequest request)
+  public async Task<OllamaStatusResponse> PullModel(OllamaPullModelRequest request)
   {
-    return _ollama.PullModelAsync(request).GetAwaiter().GetResult()
+    return await _ollama.PullModelAsync(request)
            ?? new OllamaStatusResponse { Status = "error" };
   }
 
-  public OllamaStatusResponse PushModel(OllamaPushModelRequest request)
+  public async Task<OllamaStatusResponse> PushModel(OllamaPushModelRequest request)
   {
-    return _ollama.PushModelAsync(request).GetAwaiter().GetResult()
+    return await _ollama.PushModelAsync(request)
            ?? new OllamaStatusResponse { Status = "error" };
   }
 
-  public OllamaEmbedResponse Embed(OllamaEmbedRequest request)
+  public async Task<OllamaEmbedResponse> Embed(OllamaEmbedRequest request)
   {
     request.Model = ResolveModel(request.Model);
-    return _ollama.EmbedAsync(request).GetAwaiter().GetResult()
+    return await _ollama.EmbedAsync(request)
            ?? throw new InvalidOperationException("Ollama returned no response.");
   }
 
-  public OllamaEmbeddingsResponse Embeddings(OllamaEmbeddingsRequest request)
+  public async Task<OllamaEmbeddingsResponse> Embeddings(OllamaEmbeddingsRequest request)
   {
     request.Model = ResolveModel(request.Model);
-    return _ollama.EmbeddingsAsync(request).GetAwaiter().GetResult()
+    return await _ollama.EmbeddingsAsync(request)
            ?? throw new InvalidOperationException("Ollama returned no response.");
   }
 
-  public OllamaModelSummary Summary()
+  public async Task<OllamaModelSummary> Summary()
   {
-    var tags = _ollama.TagsAsync().GetAwaiter().GetResult();
+    var tags = await _ollama.TagsAsync();
     return tags?.Models?.FirstOrDefault(m => m.Name.Contains("gemma4"))
            ?? new OllamaModelSummary { Name = _defaultModel, Model = _defaultModel };
   }
 
-  public OllamaModelDetails Details()
+  public async Task<OllamaModelDetails> Details()
   {
-    return new OllamaModelDetails
+    return await Task.FromResult(new OllamaModelDetails
     {
       Family = "gemma4",
       Families = ["gemma", "llama"],
       ParameterSize = "4.5B effective (8B with embeddings)",
       QuantizationLevel = "Q4_K_M",
       Format = "gguf"
-    };
+    });
   }
 
-  public OllamaPsResponse List()
+  public async Task<OllamaPsResponse> List()
   {
-    return _ollama.PsAsync().GetAwaiter().GetResult()
+    return await _ollama.PsAsync()
            ?? new OllamaPsResponse();
   }
 
-  public OllamaTagsResponse Tags()
+  public async Task<OllamaTagsResponse> Tags()
   {
-    return _ollama.TagsAsync().GetAwaiter().GetResult()
+    return await _ollama.TagsAsync()
            ?? new OllamaTagsResponse();
   }
 
-  public OllamaVersionResponse Version()
+  public async Task<OllamaVersionResponse> Version()
   {
-    return _ollama.VersionAsync().GetAwaiter().GetResult()
+    return await _ollama.VersionAsync()
            ?? new OllamaVersionResponse { Version = "unknown" };
   }
 

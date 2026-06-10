@@ -19,6 +19,9 @@ builder.Services.AddCors(options =>
   });
 });
 
+builder.Services.AddEndpointsApiExplorer(); // Required for minimal APIs
+builder.Services.AddSwaggerGen();
+
 builder.Services.Configure<ModelBridgeOptions>(builder.Configuration.GetSection("ModelBridge"));
 builder.Services.Configure<SessionStoreOptions>(builder.Configuration.GetSection("SessionStore"));
 builder.Services.Configure<SessionTokenOptions>(builder.Configuration.GetSection("SessionTokens"));
@@ -34,10 +37,14 @@ var app = builder.Build();
 /*
  * Idea: use CORS to filter requests. Add Beach by default, and add/remove peers from CORS list as necessary.
  */
-
 if (app.Environment.IsDevelopment())
 {
-  app.MapOpenApi();
+  app.UseSwagger();
+  app.UseSwaggerUI(options =>
+  {
+    // Add default security scheme for Authorize button
+    options.DefaultModelsExpandDepth(-1); // Hide schemas by default
+  });
 }
 
 app.UseCors(localCorsPolicy);
